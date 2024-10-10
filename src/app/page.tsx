@@ -38,9 +38,11 @@ export default function HomePage() {
     const selectedFile = event.target.files?.[0];
 
     if (selectedFile) {
-      const { signedUrl, path, token } = await createUploadUrl(
-        selectedFile.name,
-      );
+      const { path, token } = await createUploadUrl({
+        filename: selectedFile.name,
+        contentType: selectedFile.type,
+        size: selectedFile.size,
+      });
 
       const { error } = await frontendSupabase.storage
         .from(env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET)
@@ -70,6 +72,8 @@ export default function HomePage() {
       setDocumentScrollDistance(editorContainer.scrollTop);
     }
   }, []);
+
+  // TODO: begin processing PDF when file is uploaded
 
   useEffect(() => {
     const container = documentRef.current;

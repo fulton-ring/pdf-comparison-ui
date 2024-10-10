@@ -14,6 +14,9 @@ export const env = createEnv({
     SUPABASE_URL: z.string().url(),
     SUPABASE_PRIVATE_KEY: z.string(),
     SUPABASE_UPLOAD_BUCKET: z.string(),
+    CELERY_BROKER_HOST: z.string(),
+    CELERY_BROKER_PORT: z.string(),
+    CELERY_BROKER_DB: z.string(),
   },
 
   /**
@@ -37,6 +40,9 @@ export const env = createEnv({
     SUPABASE_URL: process.env.SUPABASE_URL,
     SUPABASE_PRIVATE_KEY: process.env.SUPABASE_PRIVATE_KEY,
     SUPABASE_UPLOAD_BUCKET: process.env.SUPABASE_UPLOAD_BUCKET,
+    CELERY_BROKER_HOST: process.env.CELERY_BROKER_HOST,
+    CELERY_BROKER_PORT: process.env.CELERY_BROKER_PORT,
+    CELERY_BROKER_DB: process.env.CELERY_BROKER_DB,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_PUBLIC_KEY:
       process.env.NEXT_PUBLIC_SUPABASE_PUBLIC_KEY,

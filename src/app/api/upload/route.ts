@@ -1,43 +1,68 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { env } from "~/env";
-import { UploadRequestSchema } from "~/model/upload";
+import { UploadRequestSchema, UploadResponseSchema } from "~/model/upload";
+import { db } from "~/server/db";
 import { backendSupabase } from "~/server/supabase";
 
 export async function POST(req: NextRequest) {
+  let parsedReq;
+
   try {
-    const body = UploadRequestSchema.parse(await req.json());
+    parsedReq = UploadRequestSchema.safeParse(await req.json());
 
-    const { filename } = body;
+    if (!parsedReq.success) {
+      const { errors } = parsedReq.error;
 
-    if (!filename) {
-      return NextResponse.json(
-        { error: "Filename is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({
+        error: { message: "Invalid request", errors },
+      }, { status: 400 });
     }
+  } catch (error) {
+    console.error("Error parsing request:", error);
+    return NextResponse.json({
+      error: { message: "Invalid JSON in request body" },
+    }, { status: 400 });
+  }
 
-    const bucketName = env.SUPABASE_UPLOAD_BUCKET; // Replace with your actual bucket name
-    const path = `uploads/${crypto.randomUUID()}${filename.substring(filename.lastIndexOf("."))}`;
+  try {
+    const { filename, contentType, size } = parsedReq.data;
+
+    // create upload in database
+    const upload = await db.upload.create({
+      data: {
+        filename,
+        size, // file size in bytes
+        type: contentType, // application/pdf
+      },
+    });
+
+    console.log("Upload:", upload);
+    const bucketName = env.SUPABASE_UPLOAD_BUCKET;
+    const path = `uploads/${upload.id}.${filename.substring(filename.lastIndexOf("."))}`;
 
     const { data, error } = await backendSupabase.storage
       .from(bucketName)
       .createSignedUploadUrl(path);
 
-    // TODO: error handling model
     if (error) {
       throw error;
     }
 
-    return NextResponse.json({
+    return NextResponse.json(UploadResponseSchema.parse({
+      id: upload.id,
+      filename: upload.filename,
+      size: upload.size,
+      type: upload.type,
       signedUrl: data.signedUrl,
       path: data.path,
       token: data.token,
-    });
+      createdAt: upload.created_at.toISOString(),
+    }));
   } catch (error) {
     console.error("Error generating presigned URL:", error);
     return NextResponse.json(
-      { error: "Failed to generate presigned URL" },
+      { error: "Failed to create upload" },
       { status: 500 },
     );
   }

@@ -1,18 +1,20 @@
-import { UploadRequestSchema, UploadResponseSchema } from "~/model/upload";
+import { type UploadRequest, type UploadResponse, UploadResponseSchema } from "~/model/upload";
 
-export const createUploadUrl = async (filename: string) => {
+export const createUploadUrl = async (
+  upload: UploadRequest,
+): Promise<UploadResponse> => {
   try {
-    const requestBody = UploadRequestSchema.parse({ filename });
-
     const response = await fetch("/api/upload", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(upload),
     });
 
+    console.log("Response:", response);
     if (!response.ok) {
+      console.error("Failed to create upload URL:", response);
       throw new Error("Failed to create upload URL");
     }
 

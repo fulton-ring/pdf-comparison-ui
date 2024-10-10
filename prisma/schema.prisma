@@ -10,11 +10,29 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model Upload {
+    id       String @id @default(cuid())
+    filename String
+    size     Int
+    type     String
 
-    @@index([name])
+    jobs Job[]
+
+    created_at DateTime @default(now())
+
+    @@map("uploads")
+}
+
+model Job {
+    id            String @id @default(cuid())
+    status        String
+    output_format String
+
+    upload_id String
+    upload    Upload @relation(fields: [upload_id], references: [id])
+
+    created_at DateTime @default(now())
+    updated_at DateTime @updatedAt
+
+    @@map("jobs")
 }
