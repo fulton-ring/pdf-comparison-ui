@@ -5,8 +5,8 @@ export const JobSchema = z.object({
   status: z.string(),
   outputFormat: z.string(),
   uploadId: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 });
 
 export type Job = z.infer<typeof JobSchema>;
@@ -18,3 +18,9 @@ export const SubmitJobSchema = z.object({
 
 export type SubmitJob = z.infer<typeof SubmitJobSchema>;
 
+
+export const UpdateJobSchema = z.object({
+  status: z.string(),
+});
+
+export type UpdateJob = z.infer<typeof UpdateJobSchema>;

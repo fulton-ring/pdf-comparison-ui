@@ -5,6 +5,7 @@ export const UploadSchema = z.object({
   filename: z.string(),
   size: z.number(),
   type: z.string(),
+  signedUrl: z.string(),
   createdAt: z.string().min(1, "Created at is required"),
 });
 

@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { createId } from "@paralleldrive/cuid2";
 
 import { env } from "~/env";
 import { UploadRequestSchema, UploadResponseSchema } from "~/model/upload";
@@ -28,26 +29,30 @@ export async function POST(req: NextRequest) {
   try {
     const { filename, contentType, size } = parsedReq.data;
 
+    const uploadId = createId();
+
+    const bucketName = env.SUPABASE_UPLOAD_BUCKET;
+    const remoteFilename = `uploads/${uploadId}${filename.substring(filename.lastIndexOf("."))}`;
+
+    const { data, error } = await backendSupabase.storage
+      .from(bucketName)
+      .createSignedUploadUrl(remoteFilename);
+
+    if (error) {
+      throw error;
+    }
+
     // create upload in database
     const upload = await db.upload.create({
       data: {
-        filename,
+        id: uploadId,
+        filename: remoteFilename,
         size, // file size in bytes
         type: contentType, // application/pdf
       },
     });
 
     console.log("Upload:", upload);
-    const bucketName = env.SUPABASE_UPLOAD_BUCKET;
-    const path = `uploads/${upload.id}.${filename.substring(filename.lastIndexOf("."))}`;
-
-    const { data, error } = await backendSupabase.storage
-      .from(bucketName)
-      .createSignedUploadUrl(path);
-
-    if (error) {
-      throw error;
-    }
 
     return NextResponse.json(UploadResponseSchema.parse({
       id: upload.id,

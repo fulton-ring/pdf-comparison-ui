@@ -7,6 +7,7 @@ export async function POST(req: NextRequest) {
   let parsedReq;
 
   try {
+    console.log("req:", req.body);
     parsedReq = SubmitJobSchema.safeParse(await req.json());
 
     if (!parsedReq.success) {
@@ -26,17 +27,32 @@ export async function POST(req: NextRequest) {
   try {
     const { outputFormat, uploadId } = parsedReq.data;
 
+    // TODO: get upload from database
+    const upload = await db.upload.findUnique({
+      where: { id: uploadId },
+    });
+
+    if (!upload) {
+      return NextResponse.json({
+        error: { message: "Upload not found" },
+      }, { status: 404 });
+    }
+
     // create job in database
     const job = await db.job.create({
       data: {
         status: "pending",
         output_format: outputFormat,
-        upload_id: uploadId,
+        upload: { connect: { id: uploadId } },
       },
     });
 
     // call celery worker
-    invokeCeleryTask("worker.app.process_pdf", [job.id]);
+    invokeCeleryTask("worker.app.process_pdf", [{
+      job_id: job.id,
+      output_format: outputFormat,
+      source_file: upload.filename,
+    }]);
 
     // return parsing job
     return NextResponse.json(JobSchema.parse({
@@ -44,8 +60,8 @@ export async function POST(req: NextRequest) {
       status: job.status,
       outputFormat: job.output_format,
       uploadId: job.upload_id,
-      createdAt: job.created_at,
-      updatedAt: job.updated_at,
+      createdAt: job.created_at.toISOString(),
+      updatedAt: job.updated_at.toISOString(),
     }));
   } catch (error) {
     console.error(error);

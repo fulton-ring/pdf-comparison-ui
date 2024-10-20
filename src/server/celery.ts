@@ -5,13 +5,15 @@ import { env } from "~/env";
 const tcp = new Celery.RedisTcpOptions({
 	host: env.CELERY_BROKER_HOST,
 	protocol: "redis",
-	port: env.CELERY_BROKER_PORT,
-	db: env.CELERY_BROKER_DB,
+	port: parseInt(env.CELERY_BROKER_PORT),
+	db: parseInt(env.CELERY_BROKER_DB),
 });
 
 const broker = new Celery.RedisBroker(tcp);
+const backend = new Celery.RedisBackend(tcp);
 
 const celeryClient: Celery.Client = new Celery.Client({
+	backend: backend,
 	brokers: [broker],
 	id: "pdf-comparison-ui",
 });
