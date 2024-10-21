@@ -4,7 +4,7 @@ import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 
 import { Input } from "~/components/ui/input";
-import { createUploadUrl } from "~/client/api";
+import { createJob, createUploadUrl } from "~/client/api";
 import { frontendSupabase } from "~/client/supabase";
 import { env } from "~/env";
 import { useRouter } from "next/navigation";
@@ -18,23 +18,31 @@ export default function HomePage() {
     const selectedFile = event.target.files?.[0];
 
     if (selectedFile) {
-      const { path, token, id } = await createUploadUrl({
-        filename: selectedFile.name,
-        contentType: selectedFile.type,
-        size: selectedFile.size,
-      });
+      try {
+        const { path, token, id } = await createUploadUrl({
+          filename: selectedFile.name,
+          contentType: selectedFile.type,
+          size: selectedFile.size,
+        });
 
-      const { error } = await frontendSupabase.storage
-        .from(env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET)
-        .uploadToSignedUrl(path, token, selectedFile);
+        const { error } = await frontendSupabase.storage
+          .from(env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET)
+          .uploadToSignedUrl(path, token, selectedFile);
 
-      if (error) {
-        console.error("Error uploading file:", error);
-        return;
+        if (error) {
+          console.error("Error uploading file:", error);
+          return;
+        }
+
+        const job = await createJob({
+          outputFormat: "md",
+          uploadId: id,
+        });
+
+        router.push(`/jobs/${job.id}`);
+      } catch (error) {
+        console.error("Error creating job:", error);
       }
-
-      console.log("uploaded file!");
-      router.push(`/uploads/${id}`);
     }
   };
 

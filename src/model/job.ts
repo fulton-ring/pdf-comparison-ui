@@ -4,6 +4,7 @@ export const JobSchema = z.object({
   id: z.string(),
   status: z.string(),
   outputFormat: z.string(),
+  outputUrl: z.string().optional(),
   uploadId: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),

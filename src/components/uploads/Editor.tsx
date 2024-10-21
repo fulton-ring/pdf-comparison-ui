@@ -8,31 +8,16 @@ import { createJob } from "~/client/api";
 import { frontendSupabase } from "~/client/supabase";
 
 interface EditorProps {
-  uploadId: string;
+  jobId: string;
 }
 
-const Editor = forwardRef<HTMLDivElement, EditorProps>(({ uploadId }, ref) => {
+const Editor = forwardRef<HTMLDivElement, EditorProps>(({ jobId }, ref) => {
   // TODO: show launch job button
   // TODO: stream job statuses
   // TODO: if job completed, download file
 
   const [job, setJob] = useState<Job | null>(null);
   const [jobStatusMessage, setJobStatusMessage] = useState<string | null>(null);
-
-  const handleLaunchJob = async () => {
-    try {
-      const job = await createJob({
-        outputFormat: "md",
-        uploadId,
-      });
-
-      console.log("job:", job);
-      setJob(job);
-      setJobStatusMessage(job.status);
-    } catch (error) {
-      console.error("Error creating job:", error);
-    }
-  };
 
   useEffect(() => {
     if (job) {
@@ -50,6 +35,8 @@ const Editor = forwardRef<HTMLDivElement, EditorProps>(({ uploadId }, ref) => {
       };
     }
   }, [job]);
+
+  // TODO: retrieve job output
 
   return (
     <div

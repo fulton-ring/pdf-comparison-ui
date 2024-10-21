@@ -5,9 +5,8 @@ import { Document, Page, pdfjs } from "react-pdf";
 import useSWR from "swr";
 
 import { fetchJSON } from "~/client/api";
-import Tiptap from "~/components/ui/tiptap";
-import Editor from "~/components/uploads/editor";
-import { type Upload } from "~/model/upload";
+import Editor from "~/components/uploads/Editor";
+import { Job } from "~/model/job";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
@@ -20,12 +19,11 @@ const options = {
 };
 
 interface DocumentPageProps {
-  params: { uploadId: string };
+  params: { jobId: string };
 }
 
 const DocumentPage = ({ params }: DocumentPageProps) => {
   // TODO: stream status messages of upload
-  // TODO: get upload from database
 
   const [numPages, setNumPages] = useState<number | null>(null);
   const [documentScrollDistance, setDocumentScrollDistance] =
@@ -36,8 +34,8 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const editorRef = useRef<HTMLDivElement>(null);
 
-  const { data: upload } = useSWR<Upload>(
-    `/api/upload/${params.uploadId}`,
+  const { data: job, mutate } = useSWR<Job>(
+    `/api/jobs/${params.jobId}`,
     fetchJSON,
   );
 
@@ -147,7 +145,7 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
 
       <div className="col-span-3">
         <div className="flex h-screen flex-col py-16">
-          <Editor ref={editorRef} uploadId={params.uploadId} />
+          <Editor ref={editorRef} jobId={params.jobId} />
         </div>
       </div>
 

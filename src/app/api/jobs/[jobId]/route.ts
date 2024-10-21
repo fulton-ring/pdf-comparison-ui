@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { env } from "~/env";
 import { JobSchema, UpdateJobSchema } from "~/model/job";
 import { db } from "~/server/db";
 import { backendSupabase } from "~/server/supabase";
@@ -17,11 +18,30 @@ export const GET = async (request: NextRequest, { params }: { params: JobIdParam
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
+    // TODO: retrieve job output if status is completed
+    let outputUrl: string | undefined;
+
+    if (job.status === "completed") {
+      // TODO: create presigned url for job output
+      const { data, error } = await backendSupabase
+        .storage
+        .from(env.NEXT_PUBLIC_SUPABASE_JOB_BUCKET)
+        .createSignedUrl(`jobs/${job.id}/${job.id}.${job.output_format}`, 60);
+
+      if (error) {
+        console.error("Error fetching presigned URL for job output:", error);
+        throw error;
+      }
+
+      outputUrl = data.signedUrl;
+    }
+
     const parsedJob = JobSchema.parse({
       id: job.id,
       status: job.status,
       outputFormat: job.output_format,
       uploadId: job.upload_id,
+      outputUrl,
       createdAt: job.created_at.toISOString(),
       updatedAt: job.updated_at.toISOString(),
     });
