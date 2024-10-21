@@ -1,11 +1,15 @@
-import { Job, JobSchema, SubmitJob } from "~/model/job";
-import { type UploadRequest, type UploadResponse, UploadResponseSchema } from "~/model/upload";
+import { type Job, JobSchema, type SubmitJob } from "~/model/job";
+import {
+  type UploadRequest,
+  type UploadResponse,
+  UploadResponseSchema,
+} from "~/model/upload";
 
 export const createUploadUrl = async (
   upload: UploadRequest,
 ): Promise<UploadResponse> => {
   try {
-    const response = await fetch("/api/upload", {
+    const response = await fetch("/api/uploads", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -13,7 +17,6 @@ export const createUploadUrl = async (
       body: JSON.stringify(upload),
     });
 
-    console.log("Response:", response);
     if (!response.ok) {
       console.error("Failed to create upload URL:", response);
       throw new Error("Failed to create upload URL");
@@ -66,7 +69,7 @@ export const fetchJSON = async <T>(url: string): Promise<T> => {
       throw new Error("Failed to fetch JSON");
     }
 
-    return await response.json() as T;
+    return (await response.json()) as T;
   } catch (error) {
     console.error("Error fetching JSON:", error);
     throw error;

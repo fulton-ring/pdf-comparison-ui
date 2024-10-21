@@ -1,14 +1,19 @@
 "use client";
 import "./tiptap.scss";
 
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 // import Highlight from "@tiptap/extension-highlight";
 // import Typography from "@tiptap/extension-typography";
 import { useEffect, useState } from "react";
-export type TiptapProps = React.InputHTMLAttributes<HTMLInputElement>;
 
-const Tiptap = ({ ...props }: TiptapProps) => {
+export interface TiptapProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  contentPresignedUrl: string | null;
+  onChange?: (content: string) => void;
+}
+
+const Tiptap = ({ contentPresignedUrl, onChange, ...props }: TiptapProps) => {
   // const [content, setContent] = useState("");
 
   const editor = useEditor({
@@ -18,24 +23,37 @@ const Tiptap = ({ ...props }: TiptapProps) => {
 
   useEffect(() => {
     const loadContent = async () => {
+      if (!contentPresignedUrl || !editor) {
+        return;
+      }
+
       try {
-        // TODO: get markdown content from props
-        const response = await fetch("/purdue_2023.md");
+        const response = await fetch(contentPresignedUrl);
         const text = await response.text();
 
         // setContent(text);
-        editor?.commands.setContent(
+        editor.commands.setContent(
           `<pre><code>${text.replace(/\n/g, "<br>")}</code></pre>`,
         );
+
+        if (onChange) {
+          onChange(editor.getText());
+        }
       } catch (error) {
         console.error("Failed to load markdown:", error);
       }
     };
 
     void loadContent();
-  }, [editor]);
+  }, [editor, contentPresignedUrl]);
 
-  return <EditorContent editor={editor} {...props} />;
+  const handleInput = () => {
+    if (editor && onChange) {
+      onChange(editor.getText());
+    }
+  };
+
+  return <EditorContent editor={editor} onInput={handleInput} {...props} />;
 };
 
 export default Tiptap;

@@ -5,8 +5,11 @@ import { Document, Page, pdfjs } from "react-pdf";
 import useSWR from "swr";
 
 import { fetchJSON } from "~/client/api";
+import { frontendSupabase } from "~/client/supabase";
+import { Button } from "~/components/ui/button";
 import Editor from "~/components/uploads/Editor";
-import { Job } from "~/model/job";
+import { Job, JobDocument } from "~/model/job";
+import { Upload, UploadDocument } from "~/model/upload";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
@@ -23,21 +26,23 @@ interface DocumentPageProps {
 }
 
 const DocumentPage = ({ params }: DocumentPageProps) => {
-  // TODO: stream status messages of upload
+  const [uploadPresignedUrl, setUploadPresignedUrl] = useState<string | null>(
+    null,
+  );
+  const [jobPresignedUrl, setJobPresignedUrl] = useState<string | null>(null);
+  const [jobStatusMessage, setJobStatusMessage] = useState<string | null>(null);
 
   const [numPages, setNumPages] = useState<number | null>(null);
   const [documentScrollDistance, setDocumentScrollDistance] =
     useState<number>(0);
   const [editorScrollDistance, setEditorScrollDistance] = useState<number>(0);
+  const [editorContent, setEditorContent] = useState<string>("");
 
   const documentRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const editorRef = useRef<HTMLDivElement>(null);
 
-  const { data: job, mutate } = useSWR<Job>(
-    `/api/jobs/${params.jobId}`,
-    fetchJSON,
-  );
+  const { data: job } = useSWR<Job>(`/api/jobs/${params.jobId}`, fetchJSON);
 
   const handleDocumentScroll = useCallback(() => {
     const container = documentRef.current;
@@ -54,7 +59,58 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
     }
   }, []);
 
-  // TODO: begin processing PDF when file is uploaded
+  useEffect(() => {
+    const getUploadPresignedUrl = async () => {
+      if (!job) {
+        return;
+      }
+
+      try {
+        const upload = await fetchJSON<UploadDocument>(
+          `/api/uploads/${job.uploadId}/presignedUrl`,
+        );
+
+        setUploadPresignedUrl(upload.signedUrl);
+      } catch (error) {
+        console.error("Error fetching upload presigned URL:", error);
+      }
+    };
+
+    const fetchJobPresignedUrl = async () => {
+      if (job?.status === "completed") {
+        try {
+          const { signedUrl } = await fetchJSON<JobDocument>(
+            `/api/jobs/${job.id}/presignedUrl`,
+          );
+
+          if (signedUrl) {
+            setJobPresignedUrl(signedUrl);
+          }
+        } catch (error) {
+          console.error("Error fetching job presigned URL:", error);
+        }
+      }
+    };
+
+    if (job) {
+      const channel = frontendSupabase.channel(job.id);
+
+      channel.on("broadcast", { event: "status" }, (payload) => {
+        console.log("payload:", payload);
+        setJobStatusMessage(payload.payload.status);
+      });
+
+      channel.subscribe();
+      setJobStatusMessage(job.status);
+
+      void getUploadPresignedUrl();
+      void fetchJobPresignedUrl();
+
+      return () => {
+        void channel.unsubscribe();
+      };
+    }
+  }, [job]);
 
   useEffect(() => {
     const container = documentRef.current;
@@ -91,6 +147,30 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
     ) as (HTMLDivElement | null)[];
   }
 
+  const handleEditorChange = (content: string) => {
+    setEditorContent(content);
+  };
+
+  const handleDownload = () => {
+    if (!job) {
+      return;
+    }
+
+    // TODO: remove markdown formatting
+    const blob = new Blob([editorContent], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = `${job.id}.md`;
+
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // const scrollToPage = (pageNumber: number) => {
   //   if (numPages && (pageNumber < 1 || pageNumber > numPages)) return;
 
@@ -110,42 +190,51 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
   // TODO: loading spinner
 
   return (
-    <div className="grid grid-cols-8 gap-4">
+    <div className="grid h-screen w-full grid-cols-8 gap-4 py-16">
       <div className="col-span-1" />
 
-      <div className="col-span-3">
-        <div className="flex h-screen flex-col py-16">
-          <div
-            ref={documentRef}
-            className="flex flex-grow resize-none items-center justify-center overflow-y-auto rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
-          >
-            <Document
-              file={upload?.signedUrl}
-              // file={"/purdue_2023.pdf"}
-              onLoadSuccess={onDocumentLoadSuccess}
-              className="max-h-full max-w-full"
-              options={options}
+      <div className="col-span-6">
+        <div className="grid h-full grid-cols-2 gap-4">
+          <div className="col-span-1 flex h-full flex-col">
+            <div
+              ref={documentRef}
+              className="flex flex-grow resize-none items-center justify-center overflow-y-auto rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
             >
-              {Array.from(new Array(numPages), (el, index) => (
-                <Page
-                  key={`page_${index + 1}`}
-                  pageNumber={index + 1}
-                  // width={window.innerWidth * 0.3} // Adjust this value as needed
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                />
-              ))}
-            </Document>
+              <Document
+                file={uploadPresignedUrl}
+                onLoadSuccess={onDocumentLoadSuccess}
+                className="max-h-full max-w-full"
+                options={options}
+              >
+                {Array.from(new Array(numPages), (el, index) => (
+                  <Page
+                    key={`page_${index + 1}`}
+                    pageNumber={index + 1}
+                    // width={window.innerWidth * 0.3} // Adjust this value as needed
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                  />
+                ))}
+              </Document>
+            </div>
           </div>
-          {/* <p className="mt-2 text-center">
-            Scroll to navigate through pages (1 - {numPages})
-          </p> */}
-        </div>
-      </div>
 
-      <div className="col-span-3">
-        <div className="flex h-screen flex-col py-16">
-          <Editor ref={editorRef} jobId={params.jobId} />
+          <div className="col-span-1 flex h-full flex-col">
+            <Editor
+              ref={editorRef}
+              jobStatusMessage={jobStatusMessage}
+              jobPresignedUrl={jobPresignedUrl}
+              onChange={handleEditorChange}
+            />
+          </div>
+
+          {jobPresignedUrl && (
+            <div className="col-span-2 flex h-full flex-col">
+              <Button className="w-full" onClick={handleDownload}>
+                Download Markdown
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 

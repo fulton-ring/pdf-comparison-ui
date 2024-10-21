@@ -8,8 +8,12 @@ interface UploadIdParams {
   uploadId: string;
 }
 
-export const GET = async (req: NextRequest, { params }: { params: UploadIdParams }) => {
+export const GET = async (
+  req: NextRequest,
+  { params }: { params: UploadIdParams },
+) => {
   const uploadId = params.uploadId;
+  console.log("uploadId:", uploadId);
 
   try {
     const upload = await db.upload.findUnique({
@@ -17,21 +21,10 @@ export const GET = async (req: NextRequest, { params }: { params: UploadIdParams
     });
 
     if (!upload) {
-      return new Response(JSON.stringify({ error: 'Upload not found' }), {
+      return new Response(JSON.stringify({ error: "Upload not found" }), {
         status: 404,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
-    }
-
-    // TODO: get presigned URL for upload
-    const { data, error } = await backendSupabase
-      .storage
-      .from(env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET)
-      .createSignedUrl(upload.filename, 60);
-
-    if (error) {
-      console.error("Error fetching presigned URL:", error);
-      throw error;
     }
 
     const uploadWithSignedUrl = UploadSchema.parse({
@@ -40,18 +33,17 @@ export const GET = async (req: NextRequest, { params }: { params: UploadIdParams
       size: upload.size,
       type: upload.type,
       createdAt: upload.created_at.toISOString(),
-      signedUrl: data.signedUrl,
     });
 
     return new Response(JSON.stringify(uploadWithSignedUrl), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error('Error fetching upload:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error("Error fetching upload:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
-}
+};

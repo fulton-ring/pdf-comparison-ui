@@ -5,11 +5,16 @@ export const UploadSchema = z.object({
   filename: z.string(),
   size: z.number(),
   type: z.string(),
-  signedUrl: z.string(),
   createdAt: z.string().min(1, "Created at is required"),
 });
 
 export type Upload = z.infer<typeof UploadSchema>;
+
+export const UploadDocumentSchema = z.object({
+  signedUrl: z.string(),
+});
+
+export type UploadDocument = z.infer<typeof UploadDocumentSchema>;
 
 export const UploadRequestSchema = z.object({
   filename: z.string().min(1, "Filename is required"),
