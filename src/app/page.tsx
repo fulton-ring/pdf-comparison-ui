@@ -8,9 +8,15 @@ import { createJob, createUploadUrl } from "~/client/api";
 import { frontendSupabase } from "~/client/supabase";
 import { env } from "~/env";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 
 export default function HomePage() {
   const router = useRouter();
+
+  const [uploadStatus, setUploadStatus] = useState("Click to upload a file");
+  const [isUploading, setIsUploading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -18,6 +24,9 @@ export default function HomePage() {
     const selectedFile = event.target.files?.[0];
 
     if (selectedFile) {
+      setIsUploading(true);
+      setErrorMessage(null);
+      setUploadStatus("Creating upload URL...");
       try {
         const { path, token, id } = await createUploadUrl({
           filename: selectedFile.name,
@@ -25,45 +34,73 @@ export default function HomePage() {
           size: selectedFile.size,
         });
 
+        setUploadStatus("Uploading file...");
         const { error } = await frontendSupabase.storage
           .from(env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET)
           .uploadToSignedUrl(path, token, selectedFile);
 
         if (error) {
-          console.error("Error uploading file:", error);
-          return;
+          throw new Error("Error uploading file: " + error.message);
         }
 
+        setUploadStatus("Creating job...");
         const job = await createJob({
           outputFormat: "md",
           uploadId: id,
         });
 
+        setUploadStatus("Redirecting...");
         router.push(`/jobs/${job.id}`);
       } catch (error) {
-        console.error("Error creating job:", error);
+        console.error("Error:", error);
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+        );
+        setUploadStatus("Upload failed");
+        setIsUploading(false);
       }
     }
   };
 
-  // TODO: error handling
-  // TODO: loading spinner
+  console.log(uploadStatus);
 
   return (
     <div className="flex h-full w-full justify-center gap-4">
-      <div className="flex h-screen flex-col items-center justify-center p-16">
-        <label htmlFor="file-upload" className="cursor-pointer">
+      <div className="flex h-screen flex-col items-center justify-center space-y-4 p-16">
+        {errorMessage && (
+          <Alert variant="destructive">
+            <AlertTitle>Error Uploading File:</AlertTitle>
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
+
+        <label
+          htmlFor="file-upload"
+          className={`cursor-pointer ${isUploading ? "pointer-events-none" : ""}`}
+        >
           <div className="flex items-center justify-center rounded-md border border-slate-200 bg-white p-3 text-slate-500 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-slate-900">
-            Click to upload a file
+            {isUploading ? (
+              <>
+                {uploadStatus}&nbsp;&nbsp;
+                <span className="loading loading-spinner loading-xs" />
+              </>
+            ) : (
+              "Click to upload a file"
+            )}
           </div>
           <Input
             id="file-upload"
             type="file"
             className="hidden"
             onChange={handleFileChange}
+            disabled={isUploading}
           />
         </label>
-        {/* {uploadStatus && <p className="mt-2 text-sm">{uploadStatus}</p>} */}
+        {errorMessage && (
+          <div className="mt-4 text-red-500">Error: {errorMessage}</div>
+        )}
       </div>
     </div>
   );
