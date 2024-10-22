@@ -63,6 +63,11 @@ USER nextjs
 EXPOSE 3000
 
 ENV PORT 3000
+ENV NODE_ENV production
+ENV NEXT_PUBLIC_SUPABASE_URL https://aulzipakvmpojwvviulk.supabase.co
+ENV NEXT_PUBLIC_SUPABASE_PUBLIC_KEY eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1bHppcGFrdm1wb2p3dnZpdWxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgyNDE2OTQsImV4cCI6MjA0MzgxNzY5NH0.1lS92mM1mKg-OnqaxSQ7WGZCHBxje83AtOqc2GZThvY
+ENV NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET uploads
+ENV NEXT_PUBLIC_SUPABASE_JOB_BUCKET jobs
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
