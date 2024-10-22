@@ -28,7 +28,9 @@ export const GET = async (
     if (job.status === "completed") {
       const { data, error } = await getBackendSupabase()
         .storage.from("jobs")
-        .createSignedUrl(`jobs/${job.id}/${job.id}.${job.output_format}`, 60);
+        .createSignedUrl(`jobs/${job.id}/${job.id}.${job.output_format}`, 60, {
+          download: `${job.id}.${job.output_format}?t=${Date.now()}`,
+        });
 
       if (error) {
         console.error("Error fetching presigned URL for job output:", error);

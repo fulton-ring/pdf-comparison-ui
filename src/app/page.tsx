@@ -63,6 +63,9 @@ export default function HomePage() {
     }
   };
 
+  // A super simple AI PDF parser
+  // by Fulton Ring
+
   return (
     <div className="flex h-full w-full justify-center gap-4">
       <div className="flex h-screen flex-col items-center justify-center space-y-4 p-16">
