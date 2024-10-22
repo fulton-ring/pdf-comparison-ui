@@ -5,7 +5,7 @@ import { Document, Page } from "react-pdf";
 import useSWR from "swr";
 
 import { fetchJSON } from "~/client/api";
-import { getFrontendSupabase } from "~/client/supabase";
+import { frontendSupabase } from "~/client/supabase";
 import { Button } from "~/components/ui/button";
 import Editor from "~/components/uploads/Editor";
 import { type Job, type JobDocument } from "~/model/job";
@@ -113,7 +113,7 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
     };
 
     if (job) {
-      const channel = getFrontendSupabase().channel(job.id);
+      const channel = frontendSupabase.channel(job.id);
 
       channel.on("broadcast", { event: "status" }, (payload) => {
         const messagePayload = payload.payload as { status: string };

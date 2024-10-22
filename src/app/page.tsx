@@ -5,7 +5,7 @@ import "react-pdf/dist/esm/Page/TextLayer.css";
 
 import { Input } from "~/components/ui/input";
 import { createJob, createUploadUrl } from "~/client/api";
-import { getFrontendSupabase } from "~/client/supabase";
+import { frontendSupabase } from "~/client/supabase";
 import { env } from "~/env";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -35,8 +35,8 @@ export default function HomePage() {
         });
 
         setUploadStatus("Uploading file...");
-        const { error } = await getFrontendSupabase()
-          .storage.from(env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET)
+        const { error } = await frontendSupabase.storage
+          .from(env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET)
           .uploadToSignedUrl(path, token, selectedFile);
 
         if (error) {
