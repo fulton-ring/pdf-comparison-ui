@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { env } from "~/env";
 import { JobSchema, UpdateJobSchema } from "~/model/job";
 import { db } from "~/server/db";
-import { backendSupabase } from "~/server/supabase";
+import { getBackendSupabase } from "~/server/supabase";
 
 interface JobIdParams {
   jobId: string;
@@ -26,8 +26,8 @@ export const GET = async (
 
     if (job.status === "completed") {
       // TODO: create presigned url for job output
-      const { data, error } = await backendSupabase.storage
-        .from(env.NEXT_PUBLIC_SUPABASE_JOB_BUCKET)
+      const { data, error } = await getBackendSupabase()
+        .storage.from(env.NEXT_PUBLIC_SUPABASE_JOB_BUCKET)
         .createSignedUrl(`jobs/${job.id}/${job.id}.${job.output_format}`, 60);
 
       if (error) {
@@ -92,7 +92,7 @@ export const PUT = async (
 
   try {
     const { status } = parsedReq.data;
-    const channel = backendSupabase.channel(jobId);
+    const channel = getBackendSupabase().channel(jobId);
 
     const job = await db.job.update({ where: { id: jobId }, data: { status } });
     const broadcastResponse = await channel.send({

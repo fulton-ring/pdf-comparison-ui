@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { env } from "~/env";
 import { JobDocumentSchema } from "~/model/job";
 import { db } from "~/server/db";
-import { backendSupabase } from "~/server/supabase";
+import { getBackendSupabase } from "~/server/supabase";
 
 interface JobIdParams {
   jobId: string;
@@ -25,8 +25,8 @@ export const GET = async (
     let outputUrl: string | undefined;
 
     if (job.status === "completed") {
-      const { data, error } = await backendSupabase.storage
-        .from(env.NEXT_PUBLIC_SUPABASE_JOB_BUCKET)
+      const { data, error } = await getBackendSupabase()
+        .storage.from(env.NEXT_PUBLIC_SUPABASE_JOB_BUCKET)
         .createSignedUrl(`jobs/${job.id}/${job.id}.${job.output_format}`, 60);
 
       if (error) {

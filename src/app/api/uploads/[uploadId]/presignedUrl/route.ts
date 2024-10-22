@@ -2,7 +2,7 @@ import { type NextRequest } from "next/server";
 import { env } from "~/env";
 import { UploadDocumentSchema } from "~/model/upload";
 import { db } from "~/server/db";
-import { backendSupabase } from "~/server/supabase";
+import { getBackendSupabase } from "~/server/supabase";
 
 interface UploadIdParams {
   uploadId: string;
@@ -27,8 +27,8 @@ export const GET = async (
       });
     }
 
-    const { data, error } = await backendSupabase.storage
-      .from(env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET)
+    const { data, error } = await getBackendSupabase()
+      .storage.from(env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET)
       .createSignedUrl(upload.filename, 60);
 
     if (error) {

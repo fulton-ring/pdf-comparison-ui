@@ -3,26 +3,28 @@ import { env } from "~/env";
 
 // TODO: move to env
 const tcp = new Celery.RedisTcpOptions({
-	host: env.CELERY_BROKER_HOST,
-	protocol: "redis",
-	port: parseInt(env.CELERY_BROKER_PORT),
-	db: parseInt(env.CELERY_BROKER_DB),
+  host: env.CELERY_BROKER_HOST,
+  protocol: "redis",
+  port: parseInt(env.CELERY_BROKER_PORT),
+  db: parseInt(env.CELERY_BROKER_DB),
 });
 
 const broker = new Celery.RedisBroker(tcp);
 const backend = new Celery.RedisBackend(tcp);
 
-const celeryClient: Celery.Client = new Celery.Client({
-	backend: backend,
-	brokers: [broker],
-	id: "pdf-comparison-ui",
-});
+export const getCeleryClient = () => {
+  return new Celery.Client({
+    backend: backend,
+    brokers: [broker],
+    id: "pdf-comparison-ui",
+  });
+};
 
 export const invokeCeleryTask = (taskName: string, args: any[]) => {
-	const task = celeryClient.createTask(taskName);
+  const task = getCeleryClient().createTask(taskName);
 
-	task.applyAsync({
-		args: args,
-		kwargs: {},
-	});
+  task.applyAsync({
+    args: args,
+    kwargs: {},
+  });
 };
