@@ -21,13 +21,11 @@ export const GET = async (
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    // TODO: retrieve job output if status is completed
     let outputUrl: string | undefined;
 
     if (job.status === "completed") {
-      // TODO: create presigned url for job output
       const { data, error } = await getBackendSupabase()
-        .storage.from(env.NEXT_PUBLIC_SUPABASE_JOB_BUCKET)
+        .storage.from(env.SUPABASE_JOBS_BUCKET)
         .createSignedUrl(`jobs/${job.id}/${job.id}.${job.output_format}`, 60);
 
       if (error) {

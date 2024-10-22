@@ -26,7 +26,7 @@ export const GET = async (
 
     if (job.status === "completed") {
       const { data, error } = await getBackendSupabase()
-        .storage.from(env.NEXT_PUBLIC_SUPABASE_JOB_BUCKET)
+        .storage.from("jobs")
         .createSignedUrl(`jobs/${job.id}/${job.id}.${job.output_format}`, 60);
 
       if (error) {
