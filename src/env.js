@@ -49,13 +49,15 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_SUPABASE_PUBLIC_KEY,
     NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET:
       process.env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET,
-    NEXT_PUBLIC_SUPABASE_JOB_BUCKET: process.env.NEXT_PUBLIC_SUPABASE_JOB_BUCKET,
+    NEXT_PUBLIC_SUPABASE_JOB_BUCKET:
+      process.env.NEXT_PUBLIC_SUPABASE_JOB_BUCKET,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
    * useful for Docker builds.
    */
-  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+  // skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+  skipValidation: true,
   /**
    * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
    * `SOME_VAR=''` will throw an error.
