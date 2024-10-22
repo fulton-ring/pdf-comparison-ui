@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Document, Page } from "react-pdf";
+import { Document, Page, pdfjs } from "react-pdf";
 import useSWR from "swr";
 
 import { fetchJSON } from "~/client/api";
@@ -11,6 +11,9 @@ import Editor from "~/components/uploads/Editor";
 import { type Job, type JobDocument } from "~/model/job";
 import { type UploadDocument } from "~/model/upload";
 
+// const pdfjs = await import("pdfjs-dist");
+// await import("pdfjs-dist/build/pdf.worker.min.mjs");
+
 const options = {
   cMapUrl: "/cmaps/",
   standardFontDataUrl: "/standard_fonts/",
@@ -19,6 +22,11 @@ const options = {
 interface DocumentPageProps {
   params: { jobId: string };
 }
+
+// pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+//   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+//   import.meta.url,
+// ).toString();
 
 const DocumentPage = ({ params }: DocumentPageProps) => {
   const [uploadPresignedUrl, setUploadPresignedUrl] = useState<string | null>(
@@ -54,12 +62,22 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
   //   }
   // }, []);
 
-  // useEffect(() => {
-  //   pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  //     "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
-  //     import.meta.url,
-  //   ).toString();
-  // }, []);
+  useEffect(() => {
+    const loadPdfJs = async () => {
+      // const pdfjs = await import("pdfjs-dist");
+      // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+      //   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+      //   import.meta.url,
+      // ).toString();
+
+      await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs");
+      // const pdfjs = await import("pdfjs-dist/types/src/pdf");
+
+      // pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+    };
+
+    void loadPdfJs();
+  }, []);
 
   useEffect(() => {
     const getUploadPresignedUrl = async () => {
