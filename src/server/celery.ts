@@ -1,18 +1,17 @@
 import * as Celery from "celery-ts";
 import { env } from "~/env";
 
-// TODO: move to env
-const tcp = new Celery.RedisTcpOptions({
-  host: env.CELERY_BROKER_HOST,
-  protocol: "redis",
-  port: parseInt(env.CELERY_BROKER_PORT),
-  db: parseInt(env.CELERY_BROKER_DB),
-});
-
-const broker = new Celery.RedisBroker(tcp);
-const backend = new Celery.RedisBackend(tcp);
-
 export const getCeleryClient = () => {
+  const tcp = new Celery.RedisTcpOptions({
+    host: env.CELERY_BROKER_HOST,
+    protocol: "redis",
+    port: parseInt(env.CELERY_BROKER_PORT),
+    db: parseInt(env.CELERY_BROKER_DB),
+  });
+
+  const broker = new Celery.RedisBroker(tcp);
+  const backend = new Celery.RedisBackend(tcp);
+
   return new Celery.Client({
     backend: backend,
     brokers: [broker],
