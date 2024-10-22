@@ -1,18 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Document, Page } from "react-pdf";
+import { Document, Page, pdfjs } from "react-pdf";
 import useSWR from "swr";
 
 import { fetchJSON } from "~/client/api";
 import { getFrontendSupabase } from "~/client/supabase";
-import { Button } from "~/components/ui/button";
 import Editor from "~/components/uploads/Editor";
 import { type Job, type JobDocument } from "~/model/job";
 import { type UploadDocument } from "~/model/upload";
 
-// const pdfjs = await import("pdfjs-dist");
-// await import("pdfjs-dist/build/pdf.worker.min.mjs");
+await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs");
 
 const options = {
   cMapUrl: "/cmaps/",
@@ -27,19 +25,21 @@ interface DocumentPageProps {
 //   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
 //   import.meta.url,
 // ).toString();
+// pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 const DocumentPage = ({ params }: DocumentPageProps) => {
   const [uploadPresignedUrl, setUploadPresignedUrl] = useState<string | null>(
     null,
   );
+  const [uploadExpiration, setUploadExpiration] = useState<number | null>(null);
   const [jobPresignedUrl, setJobPresignedUrl] = useState<string | null>(null);
+  const [jobExpiration, setJobExpiration] = useState<number | null>(null);
   const [jobStatusMessage, setJobStatusMessage] = useState<string | null>(null);
 
   const [numPages, setNumPages] = useState<number | null>(null);
   // const [documentScrollDistance, setDocumentScrollDistance] =
   //   useState<number>(0);
   // const [editorScrollDistance, setEditorScrollDistance] = useState<number>(0);
-  const [editorContent, setEditorContent] = useState<string>("");
 
   const documentRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -62,56 +62,24 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
   //   }
   // }, []);
 
+  // useEffect(() => {
+  //   const loadPdfJs = async () => {
+  //     // const pdfjs = await import("pdfjs-dist");
+  //     // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  //     //   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+  //     //   import.meta.url,
+  //     // ).toString();
+
+  //     await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs");
+  //     // const pdfjs = await import("pdfjs-dist/types/src/pdf");
+
+  //     //pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+  //   };
+
+  //   void loadPdfJs();
+  // }, []);
+
   useEffect(() => {
-    const loadPdfJs = async () => {
-      // const pdfjs = await import("pdfjs-dist");
-      // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-      //   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
-      //   import.meta.url,
-      // ).toString();
-
-      await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs");
-      // const pdfjs = await import("pdfjs-dist/types/src/pdf");
-
-      // pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
-    };
-
-    void loadPdfJs();
-  }, []);
-
-  useEffect(() => {
-    const getUploadPresignedUrl = async () => {
-      if (!job) {
-        return;
-      }
-
-      try {
-        const upload = await fetchJSON<UploadDocument>(
-          `/api/uploads/${job.uploadId}/presignedUrl`,
-        );
-
-        setUploadPresignedUrl(upload.signedUrl);
-      } catch (error) {
-        console.error("Error fetching upload presigned URL:", error);
-      }
-    };
-
-    const fetchJobPresignedUrl = async () => {
-      if (job?.status === "completed") {
-        try {
-          const { signedUrl } = await fetchJSON<JobDocument>(
-            `/api/jobs/${job.id}/presignedUrl`,
-          );
-
-          if (signedUrl) {
-            setJobPresignedUrl(signedUrl);
-          }
-        } catch (error) {
-          console.error("Error fetching job presigned URL:", error);
-        }
-      }
-    };
-
     if (job) {
       const channel = getFrontendSupabase().channel(job.id);
 
@@ -124,14 +92,53 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
       channel.subscribe();
       setJobStatusMessage(job.status);
 
-      void getUploadPresignedUrl();
-      void fetchJobPresignedUrl();
-
       return () => {
         void channel.unsubscribe();
       };
     }
   }, [job]);
+
+  useEffect(() => {
+    const getUploadPresignedUrl = async () => {
+      if (!job || (uploadExpiration && uploadExpiration * 1000 > Date.now())) {
+        return;
+      }
+
+      try {
+        const upload = await fetchJSON<UploadDocument>(
+          `/api/uploads/${job.uploadId}/presignedUrl`,
+        );
+
+        setUploadPresignedUrl(upload.signedUrl);
+        setUploadExpiration(upload.exp);
+      } catch (error) {
+        console.error("Error fetching upload presigned URL:", error);
+      }
+    };
+
+    const fetchJobPresignedUrl = async () => {
+      if (
+        (jobStatusMessage === "completed" || job?.status === "completed") &&
+        (!jobExpiration || jobExpiration * 1000 < Date.now())
+      ) {
+        try {
+          const { signedUrl, exp } = await fetchJSON<JobDocument>(
+            `/api/jobs/${params.jobId}/presignedUrl`,
+          );
+
+          if (signedUrl) {
+            setJobPresignedUrl(signedUrl);
+            setJobExpiration(exp);
+          }
+        } catch (error) {
+          console.error("Error fetching job presigned URL:", error);
+        }
+      }
+    };
+
+    void getUploadPresignedUrl();
+    void fetchJobPresignedUrl();
+  });
 
   // useEffect(() => {
   //   const container = documentRef.current;
@@ -168,30 +175,6 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
     ) as (HTMLDivElement | null)[];
   }
 
-  const handleEditorChange = (content: string) => {
-    setEditorContent(content);
-  };
-
-  const handleDownload = () => {
-    if (!job) {
-      return;
-    }
-
-    // TODO: remove markdown formatting
-    const blob = new Blob([editorContent], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = `${job.id}.md`;
-
-    document.body.appendChild(a);
-    a.click();
-
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   // const scrollToPage = (pageNumber: number) => {
   //   if (numPages && (pageNumber < 1 || pageNumber > numPages)) return;
 
@@ -209,53 +192,66 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
 
   // TODO: error handling
   // TODO: loading spinner
+  console.log("presigned:", uploadPresignedUrl);
+
+  if (uploadExpiration) {
+    console.log(
+      "presigned expiration:",
+      new Date(uploadExpiration * 1000).toLocaleString(),
+    );
+  }
 
   return (
-    <div className="grid h-screen w-full grid-cols-8 gap-4 py-16">
+    <div className="grid grid-cols-8 gap-4">
       <div className="col-span-1" />
 
-      <div className="col-span-6">
-        <div className="grid h-full grid-cols-2 gap-4">
-          <div className="col-span-1 flex h-full flex-col">
-            <div
-              ref={documentRef}
-              className="flex flex-grow resize-none items-center justify-center overflow-y-auto rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
-            >
-              <Document
-                file={uploadPresignedUrl}
-                onLoadSuccess={onDocumentLoadSuccess}
-                className="max-h-full max-w-full"
-                options={options}
-              >
-                {Array.from(new Array(numPages), (el, index) => (
-                  <Page
-                    key={`page_${index + 1}`}
-                    pageNumber={index + 1}
-                    // width={window.innerWidth * 0.3} // Adjust this value as needed
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                  />
-                ))}
-              </Document>
-            </div>
+      <div className="col-span-3">
+        <div className="flex h-screen flex-col py-16">
+          <p className="text-2xl text-gray-800">Original:</p>
+          <div
+            ref={documentRef}
+            className="flex flex-grow resize-none items-center justify-center overflow-y-auto rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
+          >
+            {uploadPresignedUrl &&
+              uploadExpiration &&
+              uploadExpiration * 1000 > Date.now() && (
+                <Document
+                  file={uploadPresignedUrl}
+                  // file={"/purdue_2023.pdf"}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                  className="max-h-full max-w-full"
+                  options={options}
+                >
+                  {Array.from(new Array(numPages), (el, index) => (
+                    <Page
+                      key={`page_${index + 1}`}
+                      pageNumber={index + 1}
+                      // width={window.innerWidth * 0.3} // Adjust this value as needed
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                    />
+                  ))}
+                </Document>
+              )}
           </div>
+        </div>
+      </div>
 
-          <div className="col-span-1 flex h-full flex-col">
-            <Editor
-              ref={editorRef}
-              jobStatusMessage={jobStatusMessage}
-              jobPresignedUrl={jobPresignedUrl}
-              onChange={handleEditorChange}
-            />
-          </div>
-
-          {jobPresignedUrl && (
-            <div className="col-span-2 flex h-full flex-col">
-              <Button className="w-full" onClick={handleDownload}>
-                Download Markdown
-              </Button>
-            </div>
+      <div className="col-span-3">
+        <div className="flex h-screen flex-col py-16">
+          {jobStatusMessage !== "completed" ? (
+            <p className="text-2xl text-slate-400">
+              Converting Document: {jobStatusMessage}
+            </p>
+          ) : (
+            <p className="text-2xl text-gray-800">Converted:</p>
           )}
+
+          <Editor
+            ref={editorRef}
+            jobId={params.jobId}
+            jobPresignedUrl={jobPresignedUrl}
+          />
         </div>
       </div>
 

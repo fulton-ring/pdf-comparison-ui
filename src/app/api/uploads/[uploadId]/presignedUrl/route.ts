@@ -1,5 +1,6 @@
 import { type NextRequest } from "next/server";
-import { env } from "~/env";
+import * as jose from "jose";
+
 import { UploadDocumentSchema } from "~/model/upload";
 import { db } from "~/server/db";
 import { getBackendSupabase } from "~/server/supabase";
@@ -35,8 +36,27 @@ export const GET = async (
       throw error;
     }
 
+    // Decode token in URL and get exp
+    let expiration: number | undefined;
+
+    if (data.signedUrl) {
+      const url = new URL(data.signedUrl);
+      const token = url.searchParams.get("token");
+
+      if (token) {
+        try {
+          const { exp } = jose.decodeJwt(token);
+          expiration = exp as number;
+        } catch (error) {
+          console.error("Error decoding token:", error);
+          throw error;
+        }
+      }
+    }
+
     const uploadWithSignedUrl = UploadDocumentSchema.parse({
       signedUrl: data.signedUrl,
+      exp: expiration,
     });
 
     return new Response(JSON.stringify(uploadWithSignedUrl), {

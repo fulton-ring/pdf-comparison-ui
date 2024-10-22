@@ -1,34 +1,57 @@
 "use client";
 
-import { forwardRef } from "react";
-import Tiptap from "../ui/tiptap";
+import { forwardRef, useState } from "react";
+import { DownloadIcon } from "lucide-react";
 
+import Tiptap from "../ui/tiptap";
+import { Button } from "../ui/button";
 interface EditorProps {
-  jobStatusMessage: string | null;
+  jobId: string;
   jobPresignedUrl: string | null;
-  onChange?: (content: string) => void;
 }
 
 const Editor = forwardRef<HTMLDivElement, EditorProps>(
-  ({ jobStatusMessage, jobPresignedUrl, onChange }, ref) => {
+  ({ jobId, jobPresignedUrl }, ref) => {
+    const [editorContent, setEditorContent] = useState("");
+
+    const handleDownload = () => {
+      // TODO: remove markdown formatting
+      const blob = new Blob([editorContent], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+
+      a.href = url;
+      a.download = `${jobId}.md`;
+
+      document.body.appendChild(a);
+      a.click();
+
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+
     return (
       <div
         ref={ref}
-        className="flex flex-grow overflow-y-auto rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
+        className="relative flex flex-grow overflow-y-auto rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
       >
-        {jobStatusMessage === "completed" ? (
+        <>
+          {jobPresignedUrl && (
+            <Button
+              onClick={handleDownload}
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1 z-10"
+            >
+              <DownloadIcon className="h-4 w-4" />
+            </Button>
+          )}
           <Tiptap
             className="w-full flex-grow"
             contentPresignedUrl={jobPresignedUrl}
-            onContentChange={onChange}
+            onContentChange={setEditorContent}
           />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            {jobStatusMessage && <p>Status: {jobStatusMessage} </p>}
-          </div>
-        )}
-        {/* <h1 className="text-2xl font-bold">CDS</h1> */}
-        {/*  */}
+        </>
       </div>
     );
   },

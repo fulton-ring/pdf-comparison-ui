@@ -12,6 +12,7 @@ export type Upload = z.infer<typeof UploadSchema>;
 
 export const UploadDocumentSchema = z.object({
   signedUrl: z.string(),
+  exp: z.number(),
 });
 
 export type UploadDocument = z.infer<typeof UploadDocumentSchema>;

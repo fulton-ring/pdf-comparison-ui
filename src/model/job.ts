@@ -13,6 +13,7 @@ export type Job = z.infer<typeof JobSchema>;
 
 export const JobDocumentSchema = z.object({
   signedUrl: z.string().optional(),
+  exp: z.number(),
 });
 
 export type JobDocument = z.infer<typeof JobDocumentSchema>;

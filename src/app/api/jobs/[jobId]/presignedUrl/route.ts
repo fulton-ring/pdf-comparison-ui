@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { env } from "~/env";
+import * as jose from "jose";
+
 import { JobDocumentSchema } from "~/model/job";
 import { db } from "~/server/db";
 import { getBackendSupabase } from "~/server/supabase";
@@ -37,8 +38,26 @@ export const GET = async (
       outputUrl = data.signedUrl;
     }
 
+    // Decode token in URL and get exp
+    let expiration: number | undefined;
+
+    if (outputUrl) {
+      const url = new URL(outputUrl);
+      const token = url.searchParams.get("token");
+
+      if (token) {
+        try {
+          const { exp } = jose.decodeJwt(token);
+          expiration = exp as number;
+        } catch (error) {
+          console.error("Error decoding token:", error);
+        }
+      }
+    }
+
     const parsedJob = JobDocumentSchema.parse({
       signedUrl: outputUrl,
+      exp: expiration,
     });
 
     return NextResponse.json(parsedJob);
