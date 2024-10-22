@@ -4,7 +4,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { env } from "~/env";
 import { UploadRequestSchema, UploadResponseSchema } from "~/model/upload";
 import { db } from "~/server/db";
-import { backendSupabase } from "~/server/supabase";
+import { getBackendSupabase } from "~/server/supabase";
 
 export async function POST(req: NextRequest) {
   let parsedReq;
@@ -15,15 +15,21 @@ export async function POST(req: NextRequest) {
     if (!parsedReq.success) {
       const { errors } = parsedReq.error;
 
-      return NextResponse.json({
-        error: { message: "Invalid request", errors },
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: { message: "Invalid request", errors },
+        },
+        { status: 400 },
+      );
     }
   } catch (error) {
     console.error("Error parsing request:", error);
-    return NextResponse.json({
-      error: { message: "Invalid JSON in request body" },
-    }, { status: 400 });
+    return NextResponse.json(
+      {
+        error: { message: "Invalid JSON in request body" },
+      },
+      { status: 400 },
+    );
   }
 
   try {
@@ -34,8 +40,8 @@ export async function POST(req: NextRequest) {
     const bucketName = env.SUPABASE_UPLOAD_BUCKET;
     const remoteFilename = `uploads/${uploadId}${filename.substring(filename.lastIndexOf("."))}`;
 
-    const { data, error } = await backendSupabase.storage
-      .from(bucketName)
+    const { data, error } = await getBackendSupabase()
+      .storage.from(bucketName)
       .createSignedUploadUrl(remoteFilename);
 
     if (error) {
@@ -54,16 +60,18 @@ export async function POST(req: NextRequest) {
 
     console.log("Upload:", upload);
 
-    return NextResponse.json(UploadResponseSchema.parse({
-      id: upload.id,
-      filename: upload.filename,
-      size: upload.size,
-      type: upload.type,
-      signedUrl: data.signedUrl,
-      path: data.path,
-      token: data.token,
-      createdAt: upload.created_at.toISOString(),
-    }));
+    return NextResponse.json(
+      UploadResponseSchema.parse({
+        id: upload.id,
+        filename: upload.filename,
+        size: upload.size,
+        type: upload.type,
+        signedUrl: data.signedUrl,
+        path: data.path,
+        token: data.token,
+        createdAt: upload.created_at.toISOString(),
+      }),
+    );
   } catch (error) {
     console.error("Error generating presigned URL:", error);
     return NextResponse.json(
