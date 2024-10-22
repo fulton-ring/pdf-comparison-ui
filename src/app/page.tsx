@@ -40,7 +40,7 @@ export default function HomePage() {
           .uploadToSignedUrl(path, token, selectedFile);
 
         if (error) {
-          throw new Error("Error uploading file: " + error.message);
+          throw new Error("Error uploading file: " + (error as Error).message);
         }
 
         setUploadStatus("Creating job...");

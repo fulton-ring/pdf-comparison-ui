@@ -1,8 +1,6 @@
 import { type NextRequest } from "next/server";
-import { env } from "~/env";
 import { UploadSchema } from "~/model/upload";
 import { db } from "~/server/db";
-import { backendSupabase } from "~/server/supabase";
 
 interface UploadIdParams {
   uploadId: string;

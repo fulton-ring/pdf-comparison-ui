@@ -1,20 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
+import { useEffect, useRef, useState } from "react";
+import { Document, Page } from "react-pdf";
 import useSWR from "swr";
 
 import { fetchJSON } from "~/client/api";
 import { frontendSupabase } from "~/client/supabase";
 import { Button } from "~/components/ui/button";
 import Editor from "~/components/uploads/Editor";
-import { Job, JobDocument } from "~/model/job";
-import { Upload, UploadDocument } from "~/model/upload";
-
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
-  import.meta.url,
-).toString();
+import { type Job, type JobDocument } from "~/model/job";
+import { type UploadDocument } from "~/model/upload";
 
 const options = {
   cMapUrl: "/cmaps/",
@@ -33,9 +28,9 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
   const [jobStatusMessage, setJobStatusMessage] = useState<string | null>(null);
 
   const [numPages, setNumPages] = useState<number | null>(null);
-  const [documentScrollDistance, setDocumentScrollDistance] =
-    useState<number>(0);
-  const [editorScrollDistance, setEditorScrollDistance] = useState<number>(0);
+  // const [documentScrollDistance, setDocumentScrollDistance] =
+  //   useState<number>(0);
+  // const [editorScrollDistance, setEditorScrollDistance] = useState<number>(0);
   const [editorContent, setEditorContent] = useState<string>("");
 
   const documentRef = useRef<HTMLDivElement>(null);
@@ -44,20 +39,27 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
 
   const { data: job } = useSWR<Job>(`/api/jobs/${params.jobId}`, fetchJSON);
 
-  const handleDocumentScroll = useCallback(() => {
-    const container = documentRef.current;
-    if (container) {
-      setDocumentScrollDistance(container.scrollTop);
-    }
-  }, []);
+  // const handleDocumentScroll = useCallback(() => {
+  //   const container = documentRef.current;
+  //   if (container) {
+  //     setDocumentScrollDistance(container.scrollTop);
+  //   }
+  // }, []);
 
-  const handleEditorScroll = useCallback(() => {
-    const editorContainer = editorRef.current;
+  // const handleEditorScroll = useCallback(() => {
+  //   const editorContainer = editorRef.current;
 
-    if (editorContainer) {
-      setDocumentScrollDistance(editorContainer.scrollTop);
-    }
-  }, []);
+  //   if (editorContainer) {
+  //     setDocumentScrollDistance(editorContainer.scrollTop);
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  //     "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+  //     import.meta.url,
+  //   ).toString();
+  // }, []);
 
   useEffect(() => {
     const getUploadPresignedUrl = async () => {
@@ -96,8 +98,9 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
       const channel = frontendSupabase.channel(job.id);
 
       channel.on("broadcast", { event: "status" }, (payload) => {
-        console.log("payload:", payload);
-        setJobStatusMessage(payload.payload.status);
+        const messagePayload = payload.payload as { status: string };
+
+        setJobStatusMessage(messagePayload.status);
       });
 
       channel.subscribe();
@@ -112,33 +115,33 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
     }
   }, [job]);
 
-  useEffect(() => {
-    const container = documentRef.current;
-    // // if (!container || !numPages) return;
+  // useEffect(() => {
+  //   const container = documentRef.current;
+  //   // // if (!container || !numPages) return;
 
-    // const handleScroll = () => {
-    //   const { scrollTop, scrollHeight, clientHeight } = container;
-    //   // const scrollPercentage = scrollTop / (scrollHeight - clientHeight);
-    //   // const page = Math.ceil(scrollPercentage * numPages);
-    //   // setPageNumber(page);
-    //   // setDocumentScrollPercentage(Math.round(scrollPercentage * 100));
-    //   setDocumentScrollDistance(scrollTop);
-    // };
+  //   // const handleScroll = () => {
+  //   //   const { scrollTop, scrollHeight, clientHeight } = container;
+  //   //   // const scrollPercentage = scrollTop / (scrollHeight - clientHeight);
+  //   //   // const page = Math.ceil(scrollPercentage * numPages);
+  //   //   // setPageNumber(page);
+  //   //   // setDocumentScrollPercentage(Math.round(scrollPercentage * 100));
+  //   //   setDocumentScrollDistance(scrollTop);
+  //   // };
 
-    if (container) {
-      container.addEventListener("scroll", handleDocumentScroll);
-      return () =>
-        container.removeEventListener("scroll", handleDocumentScroll);
-    }
-  }, [handleDocumentScroll]);
+  //   if (container) {
+  //     container.addEventListener("scroll", handleDocumentScroll);
+  //     return () =>
+  //       container.removeEventListener("scroll", handleDocumentScroll);
+  //   }
+  // }, [handleDocumentScroll]);
 
-  useEffect(() => {
-    const container = editorRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleEditorScroll);
-      return () => container.removeEventListener("scroll", handleEditorScroll);
-    }
-  }, [handleEditorScroll]);
+  // useEffect(() => {
+  //   const container = editorRef.current;
+  //   if (container) {
+  //     container.addEventListener("scroll", handleEditorScroll);
+  //     return () => container.removeEventListener("scroll", handleEditorScroll);
+  //   }
+  // }, [handleEditorScroll]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
     setNumPages(numPages);
@@ -183,8 +186,8 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
   //   }
   // };
 
-  console.log("documentScrollDistance:", documentScrollDistance);
-  console.log("editorScrollDistance:", editorScrollDistance);
+  // console.log("documentScrollDistance:", documentScrollDistance);
+  // console.log("editorScrollDistance:", editorScrollDistance);
 
   // TODO: error handling
   // TODO: loading spinner

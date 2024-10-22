@@ -20,7 +20,7 @@ const Editor = forwardRef<HTMLDivElement, EditorProps>(
           <Tiptap
             className="w-full flex-grow"
             contentPresignedUrl={jobPresignedUrl}
-            onChange={onChange}
+            onContentChange={onChange}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">

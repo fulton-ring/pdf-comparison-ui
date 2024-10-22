@@ -7,13 +7,16 @@ import StarterKit from "@tiptap/starter-kit";
 // import Typography from "@tiptap/extension-typography";
 import { useEffect } from "react";
 
-export interface TiptapProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface TiptapProps extends React.HTMLAttributes<HTMLDivElement> {
   contentPresignedUrl: string | null;
-  onChange?: (content: string) => void;
+  onContentChange?: (content: string) => void;
 }
 
-const Tiptap = ({ contentPresignedUrl, onChange, ...props }: TiptapProps) => {
+const Tiptap = ({
+  contentPresignedUrl,
+  onContentChange,
+  ...props
+}: TiptapProps) => {
   // const [content, setContent] = useState("");
 
   const editor = useEditor({
@@ -36,8 +39,8 @@ const Tiptap = ({ contentPresignedUrl, onChange, ...props }: TiptapProps) => {
           `<pre><code>${text.replace(/\n/g, "<br>")}</code></pre>`,
         );
 
-        if (onChange) {
-          onChange(editor.getText());
+        if (onContentChange) {
+          onContentChange(editor.getText());
         }
       } catch (error) {
         console.error("Failed to load markdown:", error);
@@ -45,11 +48,11 @@ const Tiptap = ({ contentPresignedUrl, onChange, ...props }: TiptapProps) => {
     };
 
     void loadContent();
-  }, [editor, contentPresignedUrl]);
+  }, [editor, onContentChange, contentPresignedUrl]);
 
   const handleInput = () => {
-    if (editor && onChange) {
-      onChange(editor.getText());
+    if (editor && onContentChange) {
+      onContentChange(editor.getText());
     }
   };
 

@@ -1,6 +1,6 @@
 import { type NextRequest } from "next/server";
 import { env } from "~/env";
-import { UploadDocumentSchema, UploadSchema } from "~/model/upload";
+import { UploadDocumentSchema } from "~/model/upload";
 import { db } from "~/server/db";
 import { backendSupabase } from "~/server/supabase";
 

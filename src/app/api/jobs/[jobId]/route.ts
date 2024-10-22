@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { env } from "~/env";
 import { JobSchema, UpdateJobSchema } from "~/model/job";
 import { db } from "~/server/db";
@@ -8,7 +8,10 @@ interface JobIdParams {
   jobId: string;
 }
 
-export const GET = async (request: NextRequest, { params }: { params: JobIdParams }) => {
+export const GET = async (
+  request: NextRequest,
+  { params }: { params: JobIdParams },
+) => {
   const jobId = params.jobId;
 
   try {
@@ -23,8 +26,7 @@ export const GET = async (request: NextRequest, { params }: { params: JobIdParam
 
     if (job.status === "completed") {
       // TODO: create presigned url for job output
-      const { data, error } = await backendSupabase
-        .storage
+      const { data, error } = await backendSupabase.storage
         .from(env.NEXT_PUBLIC_SUPABASE_JOB_BUCKET)
         .createSignedUrl(`jobs/${job.id}/${job.id}.${job.output_format}`, 60);
 
@@ -49,11 +51,17 @@ export const GET = async (request: NextRequest, { params }: { params: JobIdParam
     return NextResponse.json(parsedJob);
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-}
+};
 
-export const PUT = async (request: NextRequest, { params }: { params: JobIdParams }) => {
+export const PUT = async (
+  request: NextRequest,
+  { params }: { params: JobIdParams },
+) => {
   const jobId = params.jobId;
   let parsedReq;
 
@@ -65,15 +73,21 @@ export const PUT = async (request: NextRequest, { params }: { params: JobIdParam
     if (!parsedReq.success) {
       const { errors } = parsedReq.error;
 
-      return NextResponse.json({
-        error: { message: "Invalid request", errors },
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: { message: "Invalid request", errors },
+        },
+        { status: 400 },
+      );
     }
   } catch (error) {
     console.error("Error parsing request:", error);
-    return NextResponse.json({
-      error: { message: "Invalid JSON in request body" },
-    }, { status: 400 });
+    return NextResponse.json(
+      {
+        error: { message: "Invalid JSON in request body" },
+      },
+      { status: 400 },
+    );
   }
 
   try {
@@ -104,6 +118,9 @@ export const PUT = async (request: NextRequest, { params }: { params: JobIdParam
     return NextResponse.json(parsedJob);
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
-}
+};
