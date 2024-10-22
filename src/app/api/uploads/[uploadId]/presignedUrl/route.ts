@@ -43,15 +43,17 @@ export const GET = async (
       const url = new URL(data.signedUrl);
       const token = url.searchParams.get("token");
 
-      if (token) {
-        try {
-          const { exp } = jose.decodeJwt(token);
-          expiration = exp as number;
-        } catch (error) {
-          console.error("Error decoding token:", error);
-          throw error;
-        }
+      if (!token) {
+        throw new Error("Token not found");
       }
+
+      const { exp } = jose.decodeJwt(token);
+
+      if (!exp) {
+        throw new Error("Expiration not found");
+      }
+
+      expiration = exp;
     }
 
     const uploadWithSignedUrl = UploadDocumentSchema.parse({

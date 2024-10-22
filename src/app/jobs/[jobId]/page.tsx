@@ -10,8 +10,6 @@ import Editor from "~/components/uploads/Editor";
 import { type Job, type JobDocument } from "~/model/job";
 import { type UploadDocument } from "~/model/upload";
 
-await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs");
-
 const options = {
   cMapUrl: "/cmaps/",
   standardFontDataUrl: "/standard_fonts/",
@@ -26,6 +24,7 @@ interface DocumentPageProps {
 //   import.meta.url,
 // ).toString();
 // pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const DocumentPage = ({ params }: DocumentPageProps) => {
   const [uploadPresignedUrl, setUploadPresignedUrl] = useState<string | null>(

@@ -6,7 +6,6 @@ import "react-pdf/dist/esm/Page/TextLayer.css";
 import { Input } from "~/components/ui/input";
 import { createJob, createUploadUrl } from "~/client/api";
 import { getFrontendSupabase } from "~/client/supabase";
-import { env } from "~/env";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
