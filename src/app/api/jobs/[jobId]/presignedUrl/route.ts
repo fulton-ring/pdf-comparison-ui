@@ -58,6 +58,8 @@ export const GET = async (
       expiration = exp;
     }
 
+    console.log("returning presigned url:", outputUrl);
+
     const parsedJob = JobDocumentSchema.parse({
       signedUrl: outputUrl,
       exp: expiration,

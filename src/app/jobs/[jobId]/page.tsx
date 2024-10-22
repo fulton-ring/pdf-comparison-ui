@@ -23,7 +23,6 @@ interface DocumentPageProps {
 //   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
 //   import.meta.url,
 // ).toString();
-// pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const DocumentPage = ({ params }: DocumentPageProps) => {
@@ -200,6 +199,8 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
     );
   }
 
+  console.log("numPages:", numPages);
+
   return (
     <div className="grid grid-cols-8 gap-4">
       <div className="col-span-1" />
@@ -221,15 +222,16 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
                   className="max-h-full max-w-full"
                   options={options}
                 >
-                  {Array.from(new Array(numPages), (el, index) => (
-                    <Page
-                      key={`page_${index + 1}`}
-                      pageNumber={index + 1}
-                      // width={window.innerWidth * 0.3} // Adjust this value as needed
-                      renderTextLayer={false}
-                      renderAnnotationLayer={false}
-                    />
-                  ))}
+                  {numPages &&
+                    Array.from(new Array(numPages), (el, index) => (
+                      <Page
+                        key={`page_${index}`}
+                        pageNumber={index}
+                        // width={window.innerWidth * 0.3} // Adjust this value as needed
+                        renderTextLayer={false}
+                        renderAnnotationLayer={false}
+                      />
+                    ))}
                 </Document>
               )}
           </div>
