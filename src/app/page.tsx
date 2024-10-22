@@ -36,7 +36,9 @@ export default function HomePage() {
         setUploadStatus("Uploading file...");
         const { error } = await getFrontendSupabase()
           .storage.from("uploads")
-          .uploadToSignedUrl(path, token, selectedFile);
+          .uploadToSignedUrl(path, token, selectedFile, {
+            cacheControl: "max-age=60",
+          });
 
         if (error) {
           throw new Error("Error uploading file: " + (error as Error).message);

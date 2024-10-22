@@ -58,8 +58,6 @@ export const GET = async (
       expiration = exp;
     }
 
-    console.log("returning upload presigned url:", data.signedUrl);
-
     const uploadWithSignedUrl = UploadDocumentSchema.parse({
       signedUrl: data.signedUrl,
       exp: expiration,
