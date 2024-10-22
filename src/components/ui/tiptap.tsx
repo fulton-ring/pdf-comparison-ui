@@ -1,11 +1,11 @@
 "use client";
 import "./tiptap.scss";
 
-import { useEditor, EditorContent, Editor } from "@tiptap/react";
+import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 // import Highlight from "@tiptap/extension-highlight";
 // import Typography from "@tiptap/extension-typography";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export interface TiptapProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
