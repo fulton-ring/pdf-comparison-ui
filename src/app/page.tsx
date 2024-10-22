@@ -36,7 +36,7 @@ export default function HomePage() {
 
         setUploadStatus("Uploading file...");
         const { error } = await getFrontendSupabase()
-          .storage.from(env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET)
+          .storage.from("uploads")
           .uploadToSignedUrl(path, token, selectedFile);
 
         if (error) {

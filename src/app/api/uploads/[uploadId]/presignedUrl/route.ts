@@ -28,7 +28,7 @@ export const GET = async (
     }
 
     const { data, error } = await getBackendSupabase()
-      .storage.from(env.NEXT_PUBLIC_SUPABASE_UPLOAD_BUCKET)
+      .storage.from("uploads")
       .createSignedUrl(upload.filename, 60);
 
     if (error) {
