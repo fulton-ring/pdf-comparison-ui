@@ -58,8 +58,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.log("Upload:", upload);
-
     return NextResponse.json(
       UploadResponseSchema.parse({
         id: upload.id,

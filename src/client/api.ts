@@ -43,7 +43,6 @@ export const createJob = async (job: SubmitJob): Promise<Job> => {
       body: JSON.stringify(job),
     });
 
-    console.log("Response:", response);
     if (!response.ok) {
       console.error("Failed to create job:", response);
       throw new Error("Failed to create job");

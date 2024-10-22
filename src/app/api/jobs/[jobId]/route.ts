@@ -65,7 +65,6 @@ export const PUT = async (
 
   // TODO: generic parsing method
   try {
-    console.log("req:", request.body);
     parsedReq = UpdateJobSchema.safeParse(await request.json());
 
     if (!parsedReq.success) {

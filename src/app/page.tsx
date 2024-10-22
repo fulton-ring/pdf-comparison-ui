@@ -64,8 +64,6 @@ export default function HomePage() {
     }
   };
 
-  console.log(uploadStatus);
-
   return (
     <div className="flex h-full w-full justify-center gap-4">
       <div className="flex h-screen flex-col items-center justify-center space-y-4 p-16">

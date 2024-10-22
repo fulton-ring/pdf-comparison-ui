@@ -13,7 +13,6 @@ export const GET = async (
   { params }: { params: UploadIdParams },
 ) => {
   const uploadId = params.uploadId;
-  console.log("uploadId:", uploadId);
 
   try {
     const upload = await db.upload.findUnique({

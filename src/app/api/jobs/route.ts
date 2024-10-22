@@ -7,21 +7,26 @@ export async function POST(req: NextRequest) {
   let parsedReq;
 
   try {
-    console.log("req:", req.body);
     parsedReq = SubmitJobSchema.safeParse(await req.json());
 
     if (!parsedReq.success) {
       const { errors } = parsedReq.error;
 
-      return NextResponse.json({
-        error: { message: "Invalid request", errors },
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: { message: "Invalid request", errors },
+        },
+        { status: 400 },
+      );
     }
   } catch (error) {
     console.error("Error parsing request:", error);
-    return NextResponse.json({
-      error: { message: "Invalid JSON in request body" },
-    }, { status: 400 });
+    return NextResponse.json(
+      {
+        error: { message: "Invalid JSON in request body" },
+      },
+      { status: 400 },
+    );
   }
 
   try {
@@ -33,9 +38,12 @@ export async function POST(req: NextRequest) {
     });
 
     if (!upload) {
-      return NextResponse.json({
-        error: { message: "Upload not found" },
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: { message: "Upload not found" },
+        },
+        { status: 404 },
+      );
     }
 
     // create job in database
@@ -48,27 +56,34 @@ export async function POST(req: NextRequest) {
     });
 
     // call celery worker
-    invokeCeleryTask("worker.app.process_pdf", [{
-      job_id: job.id,
-      output_format: outputFormat,
-      source_file: upload.filename,
-    }]);
+    invokeCeleryTask("worker.app.process_pdf", [
+      {
+        job_id: job.id,
+        output_format: outputFormat,
+        source_file: upload.filename,
+      },
+    ]);
 
     // return parsing job
-    return NextResponse.json(JobSchema.parse({
-      id: job.id,
-      status: job.status,
-      outputFormat: job.output_format,
-      uploadId: job.upload_id,
-      createdAt: job.created_at.toISOString(),
-      updatedAt: job.updated_at.toISOString(),
-    }));
+    return NextResponse.json(
+      JobSchema.parse({
+        id: job.id,
+        status: job.status,
+        outputFormat: job.output_format,
+        uploadId: job.upload_id,
+        createdAt: job.created_at.toISOString(),
+        updatedAt: job.updated_at.toISOString(),
+      }),
+    );
   } catch (error) {
     console.error(error);
 
-    return NextResponse.json({
-      error: { message: "Internal server error" },
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: { message: "Internal server error" },
+      },
+      { status: 500 },
+    );
   }
 }
 
