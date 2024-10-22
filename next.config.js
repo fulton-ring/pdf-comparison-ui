@@ -10,6 +10,7 @@ const config = {
     config.resolve.alias.canvas = false;
     return config;
   },
+  output: "standalone",
 };
 
 export default config;
