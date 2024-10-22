@@ -29,9 +29,13 @@ export const GET = async (
 
     const { data, error } = await getBackendSupabase()
       .storage.from("uploads")
-      .createSignedUrl(upload.filename, 60);
+      .createSignedUrl(`${upload.filename}?t=${Date.now()}`, 60);
 
-    console.log("created upload presigned URL:", data);
+    console.log(
+      "created upload presigned URL:",
+      data,
+      Date.now().toLocaleString(),
+    );
 
     if (error) {
       console.error("Error fetching presigned URL:", error);

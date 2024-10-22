@@ -1,7 +1,7 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
 import useSWR from "swr";
 
 import { fetchJSON } from "~/client/api";
@@ -19,11 +19,22 @@ interface DocumentPageProps {
   params: { jobId: string };
 }
 
+const Document = dynamic(
+  () => import("react-pdf").then((mod) => mod.Document),
+  {
+    ssr: false,
+  },
+);
+
+const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), {
+  ssr: false,
+});
+
 // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 //   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
 //   import.meta.url,
 // ).toString();
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const DocumentPage = ({ params }: DocumentPageProps) => {
   const [uploadPresignedUrl, setUploadPresignedUrl] = useState<string | null>(
@@ -60,22 +71,22 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
   //   }
   // }, []);
 
-  // useEffect(() => {
-  //   const loadPdfJs = async () => {
-  //     // const pdfjs = await import("pdfjs-dist");
-  //     // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  //     //   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
-  //     //   import.meta.url,
-  //     // ).toString();
+  useEffect(() => {
+    const loadPdfJs = async () => {
+      const pdfjs = await import("pdfjs-dist");
+      // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+      //   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+      //   import.meta.url,
+      // ).toString();
 
-  //     await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs");
-  //     // const pdfjs = await import("pdfjs-dist/types/src/pdf");
+      await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs");
+      // const pdfjs = await import("pdfjs-dist/types/src/pdf");
 
-  //     //pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
-  //   };
+      pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+    };
 
-  //   void loadPdfJs();
-  // }, []);
+    void loadPdfJs();
+  });
 
   useEffect(() => {
     if (job) {
