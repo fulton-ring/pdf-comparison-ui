@@ -213,19 +213,88 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
   console.log("numPages:", numPages);
 
   return (
-    <div className="grid h-screen grid-cols-8 gap-4 overflow-hidden py-16">
+    <div className="grid h-screen w-10/12 grid-cols-8 gap-4 overflow-hidden">
       <div className="col-span-1" />
 
       <div className="col-span-6 flex flex-col overflow-hidden">
-        <div className="grid flex-grow grid-cols-2 gap-4 overflow-hidden">
+        <div className="grid h-full grid-rows-[1fr,auto] gap-4">
+          <div className="grid flex-grow grid-cols-2 gap-4 overflow-hidden">
+            <div className="col-span-1 flex flex-col overflow-hidden">
+              <p className="py-4 text-2xl text-gray-800">Original:</p>
+
+              <div
+                ref={documentRef}
+                className="flex flex-grow overflow-y-auto rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
+              >
+                {uploadPresignedUrl &&
+                  uploadExpiration &&
+                  uploadExpiration * 1000 > Date.now() && (
+                    <Document
+                      file={uploadPresignedUrl}
+                      onLoadSuccess={onDocumentLoadSuccess}
+                      className="max-h-full max-w-full"
+                      options={options}
+                    >
+                      {numPages &&
+                        Array.from(new Array(numPages), (el, index) => (
+                          <Page
+                            key={`page_${index + 1}`}
+                            pageNumber={index + 1}
+                            renderTextLayer={false}
+                            renderAnnotationLayer={false}
+                          />
+                        ))}
+                    </Document>
+                  )}
+              </div>
+            </div>
+
+            <div className="col-span-1 flex flex-col overflow-hidden">
+              {jobStatusMessage !== "completed" ? (
+                <p className="py-4 text-2xl text-slate-400">
+                  Status: {jobStatusMessage}
+                </p>
+              ) : (
+                <p className="py-4 text-2xl text-gray-800">Converted:</p>
+              )}
+
+              <Editor
+                ref={editorRef}
+                jobId={params.jobId}
+                jobPresignedUrl={jobPresignedUrl}
+              />
+            </div>
+          </div>
+
+          <div className="py-2 text-center">
+            <a
+              href="https://3yyz40ajyj2.typeform.com/to/fLrhLpb7"
+              className="inline-block text-lg text-gray-800 hover:text-slate-400"
+            >
+              Interested in using our PDF parser? Get in touch
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div className="col-span-1" />
+    </div>
+  );
+
+  return (
+    <div className="grid h-screen w-9/12 grid-cols-8 gap-4 overflow-hidden py-16">
+      <div className="col-span-1" />
+
+      <div className="col-span-6 flex flex-col overflow-hidden">
+        <div className="grid flex-grow grid-cols-2 grid-rows-2 gap-4 overflow-hidden">
           <div className="col-span-1 flex flex-col overflow-hidden">
             <p className="py-4 text-2xl text-gray-800">Original:</p>
 
             <div
               ref={documentRef}
-              className="flex flex-grow overflow-y-auto rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
+              className="flex min-h-[80%] overflow-y-auto rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
             >
-              {uploadPresignedUrl &&
+              {/* {uploadPresignedUrl &&
                 uploadExpiration &&
                 uploadExpiration * 1000 > Date.now() && (
                   <Document
@@ -244,7 +313,7 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
                         />
                       ))}
                   </Document>
-                )}
+                )} */}
             </div>
           </div>
 
@@ -268,10 +337,10 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
             </div>
           </div>
 
-          <div className="col-span-2 text-center">
+          <div className="col-span-2 bg-blue-400 py-2 text-center">
             <a
               href="https://3yyz40ajyj2.typeform.com/to/fLrhLpb7"
-              className="text-lg text-gray-800 hover:text-slate-400"
+              className="inline-block text-lg text-gray-800 hover:text-slate-400"
             >
               Interested in using our PDF parser? Get in touch
             </a>
