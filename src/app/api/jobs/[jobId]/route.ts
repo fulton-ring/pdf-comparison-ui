@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { env } from "~/env";
+import { type NextRequest, NextResponse } from "next/server";
 import { JobSchema, UpdateJobSchema } from "~/model/job";
 import { db } from "~/server/db";
-import { backendSupabase } from "~/server/supabase";
+import { getBackendSupabase } from "~/server/supabase";
 
 interface JobIdParams {
   jobId: string;
@@ -59,7 +58,7 @@ export const PUT = async (request: NextRequest, { params }: { params: JobIdParam
 
   try {
     const { status } = parsedReq.data;
-    const channel = backendSupabase.channel(jobId);
+    const channel = getBackendSupabase().channel(jobId);
 
     const job = await db.job.update({ where: { id: jobId }, data: { status } });
     const broadcastResponse = await channel.send({
