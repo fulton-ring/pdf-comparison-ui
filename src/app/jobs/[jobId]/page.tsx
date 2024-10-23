@@ -271,7 +271,7 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
               href="https://3yyz40ajyj2.typeform.com/to/fLrhLpb7"
               className="inline-block text-lg text-gray-800 hover:text-slate-400"
             >
-              Interested in using our PDF parser? Get in touch
+              Get in touch to use our PDF parser for your project
             </a>
           </div>
         </div>
