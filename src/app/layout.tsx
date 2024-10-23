@@ -30,7 +30,7 @@ export default function RootLayout({
         </main>
 
         <footer className="w-full bg-black py-4 text-sm text-white">
-          <div className="container mx-auto text-center">
+          <div className="container mx-auto flex max-w-xl items-center justify-center">
             <a
               href="https://fultonring.com"
               className="text-white hover:text-slate-400"

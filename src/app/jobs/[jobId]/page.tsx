@@ -213,57 +213,69 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
   console.log("numPages:", numPages);
 
   return (
-    <div className="grid grid-cols-8 gap-4">
+    <div className="grid h-screen grid-cols-8 gap-4 overflow-hidden py-16">
       <div className="col-span-1" />
 
-      <div className="col-span-3">
-        <div className="flex h-screen flex-col py-16">
-          <p className="text-2xl text-gray-800">Original:</p>
-          <div
-            ref={documentRef}
-            className="flex flex-grow resize-none items-center justify-center overflow-y-auto rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
-          >
-            {uploadPresignedUrl &&
-              uploadExpiration &&
-              uploadExpiration * 1000 > Date.now() && (
-                <Document
-                  file={uploadPresignedUrl}
-                  // file={"/purdue_2023.pdf"}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  className="max-h-full max-w-full"
-                  options={options}
-                >
-                  {numPages &&
-                    Array.from(new Array(numPages), (el, index) => (
-                      <Page
-                        key={`page_${index}`}
-                        pageNumber={index}
-                        // width={window.innerWidth * 0.3} // Adjust this value as needed
-                        renderTextLayer={false}
-                        renderAnnotationLayer={false}
-                      />
-                    ))}
-                </Document>
-              )}
+      <div className="col-span-6 flex flex-col overflow-hidden">
+        <div className="grid flex-grow grid-cols-2 gap-4 overflow-hidden">
+          <div className="col-span-1 flex flex-col overflow-hidden">
+            <p className="py-4 text-2xl text-gray-800">Original:</p>
+
+            <div
+              ref={documentRef}
+              className="flex flex-grow overflow-y-auto rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
+            >
+              {uploadPresignedUrl &&
+                uploadExpiration &&
+                uploadExpiration * 1000 > Date.now() && (
+                  <Document
+                    file={uploadPresignedUrl}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    className="max-h-full max-w-full"
+                    options={options}
+                  >
+                    {numPages &&
+                      Array.from(new Array(numPages), (el, index) => (
+                        <Page
+                          key={`page_${index + 1}`}
+                          pageNumber={index + 1}
+                          renderTextLayer={false}
+                          renderAnnotationLayer={false}
+                        />
+                      ))}
+                  </Document>
+                )}
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div className="col-span-3">
-        <div className="flex h-screen flex-col py-16">
-          {jobStatusMessage !== "completed" ? (
-            <p className="text-2xl text-slate-400">
-              Status: {jobStatusMessage}
-            </p>
-          ) : (
-            <p className="text-2xl text-gray-800">Converted:</p>
-          )}
+          <div className="col-span-1 flex flex-col overflow-hidden">
+            <div className="py-4">
+              {jobStatusMessage !== "completed" ? (
+                <p className="text-2xl text-slate-400">
+                  Status: {jobStatusMessage}
+                </p>
+              ) : (
+                <p className="text-2xl text-gray-800">Converted:</p>
+              )}
+            </div>
 
-          <Editor
-            ref={editorRef}
-            jobId={params.jobId}
-            jobPresignedUrl={jobPresignedUrl}
-          />
+            <div className="flex-grow overflow-y-auto">
+              <Editor
+                ref={editorRef}
+                jobId={params.jobId}
+                jobPresignedUrl={jobPresignedUrl}
+              />
+            </div>
+          </div>
+
+          <div className="col-span-2 text-center">
+            <a
+              href="https://3yyz40ajyj2.typeform.com/to/fLrhLpb7"
+              className="text-lg text-gray-800 hover:text-slate-400"
+            >
+              Interested in using our PDF parser? Get in touch
+            </a>
+          </div>
         </div>
       </div>
 

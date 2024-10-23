@@ -65,18 +65,15 @@ export default function HomePage() {
     }
   };
 
-  // A super simple AI PDF parser
-  // by Fulton Ring
-
   // TODO: add analytics
 
   return (
     <div className="flex h-full w-full justify-center gap-4">
-      <div className="flex h-screen flex-col items-center justify-center space-y-4 p-16">
+      <div className="flex h-screen flex-col items-center justify-center space-y-4 p-16 text-center">
         <h1 className="text-6xl font-bold">A Super Simple AI</h1>
         <h1 className="text-6xl font-bold">PDF Parser</h1>
         <a
-          href="https://fultonring.com"
+          href="https://3yyz40ajyj2.typeform.com/to/fLrhLpb7"
           className="text-4xl text-slate-500 hover:text-slate-400"
         >
           By Fulton Ring
