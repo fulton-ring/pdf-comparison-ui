@@ -15,6 +15,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@fontsource-variable/outfit": "^5.1.0",
     "@paralleldrive/cuid2": "^2.2.2",
     "@prisma/client": "^5.14.0",
     "@radix-ui/react-slot": "^1.1.0",

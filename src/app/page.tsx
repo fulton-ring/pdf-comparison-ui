@@ -68,9 +68,22 @@ export default function HomePage() {
   // A super simple AI PDF parser
   // by Fulton Ring
 
+  // TODO: add analytics
+
   return (
     <div className="flex h-full w-full justify-center gap-4">
       <div className="flex h-screen flex-col items-center justify-center space-y-4 p-16">
+        <h1 className="text-6xl font-bold">A Super Simple AI</h1>
+        <h1 className="text-6xl font-bold">PDF Parser</h1>
+        <a
+          href="https://fultonring.com"
+          className="text-4xl text-slate-500 hover:text-slate-400"
+        >
+          By Fulton Ring
+        </a>
+
+        <div className="h-2"></div>
+
         {errorMessage && (
           <Alert variant="destructive">
             <AlertTitle>Error Uploading File:</AlertTitle>
@@ -82,14 +95,14 @@ export default function HomePage() {
           htmlFor="file-upload"
           className={`cursor-pointer ${isUploading ? "pointer-events-none" : ""}`}
         >
-          <div className="flex items-center justify-center rounded-md border border-slate-200 bg-white p-3 text-slate-500 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-slate-900">
+          <div className="flex items-center justify-center rounded-md border border-slate-200 bg-white p-3 text-lg text-slate-500 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-slate-900">
             {isUploading ? (
               <>
                 {uploadStatus}&nbsp;&nbsp;
                 <span className="loading loading-spinner loading-xs" />
               </>
             ) : (
-              "Click to upload a file"
+              "Upload a PDF to convert it to Markdown"
             )}
           </div>
           <Input

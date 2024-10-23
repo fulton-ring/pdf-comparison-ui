@@ -27,6 +27,8 @@ export const GET = async (
       });
     }
 
+    // NOTE: the Next.js fetch cache will cache the response, so timestamp is added to the URL to avoid cache hits
+    // Updating to Next 15 will allow us to use the new fetch options to disable caching
     const { data, error } = await getBackendSupabase()
       .storage.from("uploads")
       .createSignedUrl(`${upload.filename}?t=${Date.now()}`, 60);

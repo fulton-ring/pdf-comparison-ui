@@ -1,6 +1,7 @@
 import "~/styles/globals.css";
 
-import { GeistSans } from "geist/font/sans";
+// import { GeistSans } from "geist/font/sans";
+import { Outfit } from "next/font/google";
 import { type Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,17 +10,35 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
+const outfit = Outfit({
+  // weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable}`}>
-      <body>
-        <main className="flex flex-col items-center justify-center">
+    // <html lang="en" className={`${GeistSans.variable}`}>
+    <html lang="en" className={`${outfit.className}`}>
+      <body className="flex flex-col">
+        <main className="flex flex-grow flex-col items-center justify-center">
           <div className="container flex flex-col items-center justify-center">
             {children}
           </div>
         </main>
+
+        <footer className="w-full bg-black py-4 text-sm text-white">
+          <div className="container mx-auto text-center">
+            <a
+              href="https://fultonring.com"
+              className="text-white hover:text-slate-400"
+            >
+              Fulton Ring, Inc. &copy; {new Date().getFullYear()}
+            </a>
+          </div>
+        </footer>
       </body>
     </html>
   );

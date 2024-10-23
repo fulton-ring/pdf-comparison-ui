@@ -253,7 +253,7 @@ const DocumentPage = ({ params }: DocumentPageProps) => {
         <div className="flex h-screen flex-col py-16">
           {jobStatusMessage !== "completed" ? (
             <p className="text-2xl text-slate-400">
-              Converting Document: {jobStatusMessage}
+              Status: {jobStatusMessage}
             </p>
           ) : (
             <p className="text-2xl text-gray-800">Converted:</p>
